@@ -1,34 +1,36 @@
-name: Publish Python Package
+name: Publish
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger on pull requests to the main branch
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out code
+    - name: Checkout code
       uses: actions/checkout@v2
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.6'  # or above
+        python-version: '3.8'  # Specify the version of Python
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel twine
+        pip install -r requirements.txt
 
-    - name: Build package
+    - name: Run tests
+      run: |
+        pytest  # or whatever test command you use
+
+    - name: Publish package
       run: |
         python setup.py sdist bdist_wheel
-
-    - name: Publish package to PyPI
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        python -m twine upload dist/*
+        twine upload dist/*
